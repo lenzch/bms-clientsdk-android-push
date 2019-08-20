@@ -191,7 +191,7 @@ public class MFPPush extends FirebaseInstanceIdService {
 
   private String clientSecret;
   private boolean isInitialized = false;
-
+  public boolean overrideReceiver = false;
   private boolean isTokenUpdatedOnServer = false;
 
   private List<MFPInternalPushMessage> pending = new ArrayList<MFPInternalPushMessage>();

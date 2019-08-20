@@ -56,11 +56,14 @@ import static com.ibm.mobilefirstplatform.clientsdk.android.push.internal.MFPPus
 
 import com.ibm.mobilefirstplatform.clientsdk.android.core.api.BMSClient;
 import com.ibm.mobilefirstplatform.clientsdk.android.logger.api.Logger;
+import com.ibm.mobilefirstplatform.clientsdk.android.push.internal.MFPInternalPushChannel;
+import com.ibm.mobilefirstplatform.clientsdk.android.push.internal.MFPInternalPushChannelGroup;
 import com.ibm.mobilefirstplatform.clientsdk.android.push.internal.MFPInternalPushMessage;
 import com.ibm.mobilefirstplatform.clientsdk.android.push.internal.MFPPushConstants;
 import com.ibm.mobilefirstplatform.clientsdk.android.push.internal.MFPPushUtils;
 
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -265,6 +268,12 @@ public class MFPPushIntentService extends FirebaseMessagingService {
     }
 
 
+    private NotificationChannel getNotificationChannel(Context context,MFPInternalPushMessage message) {
+
+        NotificationChannel channel = null;
+
+        return channel;
+    }
     private void generateNotification(Context context, String ticker,
                                       String title, String msg, int icon, Intent intent, String sound, int notificationId, MFPInternalPushMessage message) {
 
@@ -277,11 +286,23 @@ public class MFPPushIntentService extends FirebaseMessagingService {
 
             NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             String id = context.getPackageName();
-            int importance = NotificationManager.IMPORTANCE_LOW;
-            NotificationChannel mChannel = new NotificationChannel(id, DEFAULT_CHANNEL_ID,importance);
-            mChannel.enableLights(true);
-            mNotificationManager.createNotificationChannel(mChannel);
+
+            NotificationChannel channel = message.getChannel(context,mNotificationManager);
+            if(channel != null) {
+               // ArrayList<MFPInternalPushChannelGroup> channelGroups = channel.getChannelGroups();
+                mNotificationManager.createNotificationChannel(channel);
+            } else {
+
+                int importance = NotificationManager.IMPORTANCE_LOW;
+                NotificationChannel mChannel = new NotificationChannel(id, DEFAULT_CHANNEL_ID,importance);
+                mChannel.enableLights(true);
+                mNotificationManager.createNotificationChannel(mChannel);
+            }
             builder = new NotificationCompat.Builder(this, id);
+
+
+            // CALL  getNotificationChannel from here
+
 
 
         } else {
@@ -601,8 +622,13 @@ public class MFPPushIntentService extends FirebaseMessagingService {
         return null;
     }
 
-    private Uri getNotificationSoundUri(Context context, String sound) {
+    public Uri getNotificationSoundUri(Context context, String sound) {
+
         Uri uri = null;
+
+        if(context == null) {
+            context = getApplicationContext();
+        }
 
         if (sound == null) {
             uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);

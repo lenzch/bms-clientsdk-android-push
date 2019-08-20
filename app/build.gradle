@@ -1,13 +1,15 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion "26.0.2"
+   compileSdkVersion 28
+    buildToolsVersion "28.0.3"
+//    compileSdkVersion 27
+//    buildToolsVersion '27.0.3'
 
     defaultConfig {
         applicationId "com.ibm.mobilefirst.clientsdk.android.app"
         minSdkVersion 15
-        targetSdkVersion 26
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
     }
@@ -26,9 +28,14 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:26.1.0'
-    compile 'com.google.firebase:firebase-messaging:10.2.6'
-    implementation project(':lib')
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation 'com.android.support:support-v4:28.0.0'
+    implementation 'com.android.support:support-media-compat:28.0.0'
+    implementation 'com.android.support:animated-vector-drawable:28.0.0'
+    implementation 'com.android.support:customtabs:28.0.0'
+    implementation 'com.google.firebase:firebase-messaging:10.2.6'
+    implementation 'com.ibm.mobilefirstplatform.clientsdk.android:core:3.+'
+    compile project(':lib')
 }
 
 apply plugin: 'com.google.gms.google-services'
