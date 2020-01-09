@@ -385,6 +385,10 @@ public class MFPPushIntentService extends FirebaseMessagingService {
                     .setStyle(notificationStyle);
                 }
 
+                if (message.getGroupId != null) {
+                    builder.setGroup(message.getGroupId);
+                }
+
               this.setNotificationActions(context,intent,notificationId,message.getCategory(),builder);
                 notification = builder.build();
 
