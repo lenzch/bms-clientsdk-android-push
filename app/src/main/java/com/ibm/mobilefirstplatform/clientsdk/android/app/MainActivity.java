@@ -42,10 +42,10 @@ public class MainActivity extends Activity {
 
         updateTextView("Starting Push Android Sample..");
 
-        String appGuid = "Appp GUID";
-        String clientSecret = "App client secret";
+        String appGuid = "";
+        String clientSecret = "";
 
-        BMSClient.getInstance().initialize(getApplicationContext(), BMSClient.REGION_UK);
+        BMSClient.getInstance().initialize(getApplicationContext(), BMSClient.REGION_US_SOUTH);
 
 
         // Actionable Notifications
@@ -99,7 +99,7 @@ public class MainActivity extends Activity {
         options.setPushVariables(tempValue);
 
         push = MFPPush.getInstance();
-        push.initialize(getApplicationContext(),appGuid,clientSecret,options);
+        push.initialize(getApplicationContext(),appGuid,clientSecret);
 
         //Uncomment this code to use Push notification without userId support.
 

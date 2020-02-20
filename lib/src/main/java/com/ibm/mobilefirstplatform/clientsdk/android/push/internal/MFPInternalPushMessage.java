@@ -57,6 +57,7 @@ public class MFPInternalPushMessage implements Parcelable, MFPPushMessage {
 	private static final String GCM_HAS_TEMPLATE = "has-template";
 	private static final String FCM_TITLE = "androidTitle";
 	private static final String FCM_CHANNEL = "channel";
+	private static final String FCM_GROUP_ID = "groupId";
 
 	public static final String LOG_TAG = "PushMessage";
 
@@ -80,6 +81,7 @@ public class MFPInternalPushMessage implements Parcelable, MFPPushMessage {
 	private String gcmStyle = null;
 	private String iconName = null;
 	private String lights = null;
+	private String groupId = null;
 	private int hasTemplate = 0;
 
 	private String androidTitle = null;
@@ -110,6 +112,7 @@ public class MFPInternalPushMessage implements Parcelable, MFPPushMessage {
 		lights = info.getString(GCM_EXTRA_LIGHTS);
 		messageType = info.getString(GCM_MESSAGE_TYPE);
 		hasTemplate = Integer.parseInt(info.getString(GCM_HAS_TEMPLATE));
+		groupId = info.getString(FCM_GROUP_ID);
 
 		try {
 			JSONObject towers = new JSONObject(payload);
@@ -124,6 +127,7 @@ public class MFPInternalPushMessage implements Parcelable, MFPPushMessage {
 		id = source.readString();
 		alert = source.readString();
 		androidTitle = source.readString();
+		groupId = source.readString();
 		url = source.readString();
 		//channelJson = source.readString();
 		payload = source.readString();
@@ -161,6 +165,11 @@ public class MFPInternalPushMessage implements Parcelable, MFPPushMessage {
 			logger.error("MFPInternalPushMessage: MFPInternalPushMessage() - Exception while parsing JSON, get androidTitle.  "+ e.toString());
 		}
 
+		try {
+			groupId = json.getString(FCM_GROUP_ID);
+		} catch (JSONException e) {
+			logger.error("MFPInternalPushMessage: MFPInternalPushMessage() - Exception while parsing JSON, get groupId.  "+ e.toString());
+		}
 		try {
 			url = json.getString(GCM_EXTRA_URL);
 		} catch (JSONException e) {
@@ -267,6 +276,7 @@ public class MFPInternalPushMessage implements Parcelable, MFPPushMessage {
 			json.put(GCM_EXTRA_LIGHTS, lights);
 			json.put(GCM_MESSAGE_TYPE, messageType);
 			json.put(GCM_HAS_TEMPLATE,hasTemplate);
+			json.put(FCM_GROUP_ID,groupId);
 
     } catch (JSONException e) {
 			logger.error("MFPInternalPushMessage: MFPInternalPushMessage() - Exception while parsing JSON.  "+ e.toString());
@@ -300,10 +310,18 @@ public class MFPInternalPushMessage implements Parcelable, MFPPushMessage {
 		this.channelJson = channelJson;
 	}
 
+	public String getGroupId() {
+		return groupId;
+	}
+
+	public void setGroupId(String groupId) {
+		this.groupId = groupId;
+	}
+
 	@RequiresApi(api = Build.VERSION_CODES.O)
 	public NotificationChannel getChannel(Context context, NotificationManager mNotificationManager) {
 
-		if (channelJson != null) {
+		if (channelJson != null && channelJson.length() > 0) {
 			MFPInternalPushChannel channel = new MFPInternalPushChannel(channelJson);
 			return channel.getChannel(context,mNotificationManager);
 		}
@@ -382,7 +400,7 @@ public class MFPInternalPushMessage implements Parcelable, MFPPushMessage {
 	@Override
 	public String toString() {
 		return "MFPPushMessage [url=" + url + ", alert=" + alert + ", title=" + androidTitle + ", payload="
-				+ payload + ", mid=" + mid + ",sound="+ sound+ ",priority="+ priority + ",visibility="+ visibility + ",redact=" + redact + ",category="+category + ",key="+key + ",notificationId="+notificationId + ",type="+messageType+" ,hasTemplate="+hasTemplate+", channelJson="+channelJson+"]";
+				+ payload + ", mid=" + mid + ",sound="+ sound+ ",priority="+ priority + ",visibility="+ visibility + ",redact=" + redact + ",category="+category + ",key="+key + ",notificationId="+notificationId + ",type="+messageType+" ,hasTemplate="+hasTemplate+", channelJson="+channelJson+", groupId="+ groupId +"]";
 	}
 
 	/* (non-Javadoc)
@@ -420,6 +438,7 @@ public class MFPInternalPushMessage implements Parcelable, MFPPushMessage {
 		dest.writeString(lights);
 		dest.writeString(messageType);
 		dest.writeInt(hasTemplate);
+		dest.writeString(groupId);
 	}
 
 	public static final Creator<MFPInternalPushMessage> CREATOR = new Creator<MFPInternalPushMessage>() {

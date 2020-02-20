@@ -61,6 +61,8 @@ import com.ibm.mobilefirstplatform.clientsdk.android.push.internal.MFPPushConsta
 import com.ibm.mobilefirstplatform.clientsdk.android.push.internal.MFPPushUtils;
 
 
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -73,6 +75,7 @@ import java.util.regex.Pattern;
 import android.media.RingtoneManager;
 import android.net.Uri;
 
+import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
 import org.json.JSONObject;
@@ -273,6 +276,7 @@ public class MFPPushIntentService extends FirebaseMessagingService {
     }
 
 
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private void generateNotification(Context context, String ticker,
                                       String title, String msg, int icon, Intent intent, String sound, int notificationId, MFPInternalPushMessage message) {
 
@@ -280,6 +284,7 @@ public class MFPPushIntentService extends FirebaseMessagingService {
         long when = System.currentTimeMillis();
         Notification notification = null;
         NotificationCompat.Builder builder;
+        NotificationCompat.Builder groupBuilder;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
 
@@ -299,9 +304,13 @@ public class MFPPushIntentService extends FirebaseMessagingService {
             builder = new NotificationCompat.Builder(this, id);
             builder.setChannelId(channel.getId());
 
+            groupBuilder = new NotificationCompat.Builder(this, id);
+            groupBuilder.setChannelId(channel.getId());
+
 
         } else {
             builder = new NotificationCompat.Builder(this);
+            groupBuilder = new NotificationCompat.Builder(this);
         }
 
         Intent deleteIntent = new Intent(MFPPushUtils.getIntentPrefix(context)
@@ -385,6 +394,10 @@ public class MFPPushIntentService extends FirebaseMessagingService {
                     .setStyle(notificationStyle);
                 }
 
+                if (message.getGroupId() != null) {
+                    builder.setGroup(message.getGroupId());
+                }
+
               this.setNotificationActions(context,intent,notificationId,message.getCategory(),builder);
                 notification = builder.build();
 
@@ -440,6 +453,7 @@ public class MFPPushIntentService extends FirebaseMessagingService {
             }
 
         } else {
+
             if (androidSDKVersion > 10) {
                 builder.setContentIntent(PendingIntent
                                          .getActivity(context, notificationId, intent,
@@ -448,6 +462,21 @@ public class MFPPushIntentService extends FirebaseMessagingService {
                 .setSmallIcon(icon).setTicker(ticker).setWhen(when)
                 .setAutoCancel(true).setContentTitle(title)
                 .setContentText(msg).setSound(getNotificationSoundUri(context, sound));
+
+                if (message.getGroupId() != null) {
+                   // String val = context.getPackageName() + "." + message.getGroupId();
+                    String val = message.getGroupId();
+                    builder.setGroup(val);
+                    groupBuilder.setContentTitle(title)
+                            .setContentText(msg)
+                            .setGroupSummary(true)
+                            .setSmallIcon(icon)
+                            .setGroup(val)
+                            .setContentIntent(PendingIntent
+                            .getActivity(context, notificationId, intent,
+                                    PendingIntent.FLAG_UPDATE_CURRENT))
+                            .setDeleteIntent(deletePendingIntent);
+                }
 
                 if (androidSDKVersion > 15) {
                     int priority = getPriorityOfMessage(message);
@@ -496,13 +525,16 @@ public class MFPPushIntentService extends FirebaseMessagingService {
                 }
 
             } else {
-                notification = builder.setContentIntent(PendingIntent
+                builder.setContentIntent(PendingIntent
                                                         .getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT))
                 .setDeleteIntent(deletePendingIntent)
                 .setSmallIcon(icon).setTicker(ticker).setWhen(when)
                 .setAutoCancel(true).setContentTitle(title)
-                .setContentText(msg).setSound(getNotificationSoundUri(context, sound))
-                .build();
+                .setContentText(msg).setSound(getNotificationSoundUri(context, sound));
+                if (message.getGroupId() != null) {
+                    builder.setGroup(context.getPackageName() + "." + message.getGroupId());
+                }
+                notification = builder.build();
             }
 
             if (message.getLights() != null) {
@@ -551,6 +583,13 @@ public class MFPPushIntentService extends FirebaseMessagingService {
 
             NotificationManager notificationManager = (NotificationManager) context
             .getSystemService(Context.NOTIFICATION_SERVICE);
+
+
+
+            if (message.getGroupId() != null) {
+                int idValue = message.getGroupId().hashCode();
+                notificationManager.notify(idValue , groupBuilder.build());
+            }
 
             notificationManager.notify(notificationId, notification);
         }
